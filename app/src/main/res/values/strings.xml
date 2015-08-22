@@ -1,5 +1,5 @@
 <resources>
-    <string name="tmdb_api_key" translatable="false">YOUR_API_KEY_HERE</string>
+    <string name="tmdb_api_key" translatable="false">490bc3f8bd238721511d3c3c21b9e925</string>
 
     <string name="app_name">Popular Movies</string>
     <string name="hello_world">Hello world!</string>
@@ -19,6 +19,5 @@
         <item>popularity.desc</item>
         <item>vote_count.desc</item>
     </string-array>
-
-    <string name="title_activity_detail">Movie Detail</string>
+    <string name="title_activity_detail">DetailActivity</string>
 </resources>
