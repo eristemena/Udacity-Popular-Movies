@@ -1,11 +1,10 @@
 package com.ngoprekweb.popularmovies.model;
 
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-/**
- * Created by erisristemena on 8/21/15.
- */
-public class Movie {
+public class Movie implements Parcelable {
     private String mId;
     private String mTitle;
     private String mOverview;
@@ -27,6 +26,15 @@ public class Movie {
     }
 
     public Movie() {
+    }
+
+    public Movie(Parcel in) {
+        this.mId = in.readString();
+        this.mTitle = in.readString();
+        this.mOverview = in.readString();
+        this.mReleaseDate = in.readString();
+        this.mRating = in.readString();
+        this.mThumbnail = in.readString();
     }
 
     public Movie setId(String id) {
@@ -78,4 +86,31 @@ public class Movie {
         mThumbnail = thumbnail;
         return this;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mId);
+        dest.writeString(this.mTitle);
+        dest.writeString(this.mOverview);
+        dest.writeString(this.mReleaseDate);
+        dest.writeString(this.mRating);
+        dest.writeString(this.mThumbnail);
+    }
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel source) {
+            return new Movie(source);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 }
