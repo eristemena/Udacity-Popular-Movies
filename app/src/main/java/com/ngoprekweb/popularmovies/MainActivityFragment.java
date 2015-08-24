@@ -38,9 +38,17 @@ import java.util.ArrayList;
  */
 public class MainActivityFragment extends Fragment {
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+    private final String MOVIE_KEY = "movie_key";
     private GridView mGridView;
+    private ArrayList<Movie> listOfMovies;
 
     public MainActivityFragment() {
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
     }
 
     @Override
@@ -49,6 +57,30 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         mGridView = (GridView) rootView.findViewById(R.id.gridview);
+
+        if (savedInstanceState == null || !savedInstanceState.containsKey(MOVIE_KEY)) {
+            // no saved instance found
+
+            final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
+            listOfMovies = dbHelper.getAllMovies();
+
+            FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                @Override
+                public void done(ArrayList<Movie> movies) {
+                    dbHelper.bulkInsert(movies);
+                    mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
+                }
+            });
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortBy = prefs.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+
+            task.execute(sortBy);
+        } else {
+            listOfMovies = savedInstanceState.getParcelableArrayList(MOVIE_KEY);
+        }
+
+        mGridView.setAdapter(new ImageAdapter(getActivity(), listOfMovies));
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -66,22 +98,14 @@ public class MainActivityFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
-        ArrayList<Movie> movies = dbHelper.getAllMovies();
-        mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
 
-        FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
-            @Override
-            public void done(ArrayList<Movie> movies) {
-                dbHelper.bulkInsert(movies);
-                mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
-            }
-        });
+    }
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortBy = prefs.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-        task.execute(sortBy);
+        outState.putParcelableArrayList(MOVIE_KEY, listOfMovies);
     }
 
     public class ImageAdapter extends BaseAdapter {
