@@ -41,6 +41,7 @@ public class MainActivityFragment extends Fragment {
     private GridView mGridView;
     private ArrayList<Movie> listOfMovies;
     SharedPreferences pref;
+    FetchPopularMoviesTask mTask;
 
     public MainActivityFragment() {
     }
@@ -66,7 +67,7 @@ public class MainActivityFragment extends Fragment {
             listOfMovies = dbHelper.getAllMovies();
 
             if(isNetworkAvailable()) {
-                FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                mTask = new FetchPopularMoviesTask(new GetMoviesCallback() {
                     @Override
                     public void done(ArrayList<Movie> movies) {
                         dbHelper.bulkInsert(movies);
@@ -76,7 +77,7 @@ public class MainActivityFragment extends Fragment {
 
                 String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
 
-                task.execute(sortBy);
+                mTask.execute(sortBy);
             }
         } else {
             listOfMovies = savedInstanceState.getParcelableArrayList(MOVIE_KEY);
@@ -103,6 +104,13 @@ public class MainActivityFragment extends Fragment {
 
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        mTask.cancel(true);
+    }
+
     SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -110,7 +118,7 @@ public class MainActivityFragment extends Fragment {
                 final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
 
                 if(isNetworkAvailable()) {
-                    FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                    mTask = new FetchPopularMoviesTask(new GetMoviesCallback() {
                         @Override
                         public void done(ArrayList<Movie> movies) {
                             dbHelper.bulkInsert(movies);
@@ -120,7 +128,7 @@ public class MainActivityFragment extends Fragment {
 
                     String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
 
-                    task.execute(sortBy);
+                    mTask.execute(sortBy);
                 }
             }
         }
@@ -253,10 +261,12 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String forecastJsonStr) {
-            try {
-                mCallback.done(parseJSON(forecastJsonStr));
-            } catch (JSONException e) {
-                e.printStackTrace();
+            if(forecastJsonStr!=null) {
+                try {
+                    mCallback.done(parseJSON(forecastJsonStr));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
