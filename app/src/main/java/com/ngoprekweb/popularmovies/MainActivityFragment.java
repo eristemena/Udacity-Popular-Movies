@@ -1,6 +1,5 @@
 package com.ngoprekweb.popularmovies;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -13,13 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.ImageView;
 
 import com.ngoprekweb.popularmovies.model.Movie;
 import com.ngoprekweb.popularmovies.model.MovieDbHelper;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -148,48 +144,6 @@ public class MainActivityFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putParcelableArrayList(MOVIE_KEY, listOfMovies);
-    }
-
-    public class ImageAdapter extends BaseAdapter {
-        private Context mContext;
-        private ArrayList<Movie> mMovies;
-
-        public ImageAdapter(Context context, ArrayList<Movie> movies) {
-            mContext = context;
-            mMovies = movies;
-        }
-
-        @Override
-        public int getCount() {
-            return mMovies.size();
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ImageView imageView;
-            if (convertView == null) {
-                // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-                imageView.setAdjustViewBounds(true);
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            } else {
-                imageView = (ImageView) convertView;
-            }
-
-            Picasso.with(mContext).load(mMovies.get(position).getThumbnail()).into(imageView);
-
-            return imageView;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return mMovies.get(position);
-        }
     }
 
     public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
