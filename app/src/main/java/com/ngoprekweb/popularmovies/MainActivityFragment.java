@@ -41,6 +41,7 @@ public class MainActivityFragment extends Fragment {
     private final String MOVIE_KEY = "movie_key";
     private GridView mGridView;
     private ArrayList<Movie> listOfMovies;
+    SharedPreferences pref;
 
     public MainActivityFragment() {
     }
@@ -49,6 +50,7 @@ public class MainActivityFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
     }
 
     @Override
@@ -72,8 +74,7 @@ public class MainActivityFragment extends Fragment {
                 }
             });
 
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortBy = prefs.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+            String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
 
             task.execute(sortBy);
         } else {
@@ -97,6 +98,47 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+
+
+    }
+
+    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if(key.equals(getString(R.string.pref_key_sort_by))) {
+                final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
+
+                FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                    @Override
+                    public void done(ArrayList<Movie> movies) {
+                        dbHelper.bulkInsert(movies);
+                        mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
+                    }
+                });
+
+                String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+
+                task.execute(sortBy);
+            }
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        pref.registerOnSharedPreferenceChangeListener(sharedPreferenceListener);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        pref.unregisterOnSharedPreferenceChangeListener(sharedPreferenceListener);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
 
 
     }
