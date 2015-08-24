@@ -1,7 +1,10 @@
 package com.ngoprekweb.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -62,17 +65,19 @@ public class MainActivityFragment extends Fragment {
             final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
             listOfMovies = dbHelper.getAllMovies();
 
-            FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
-                @Override
-                public void done(ArrayList<Movie> movies) {
-                    dbHelper.bulkInsert(movies);
-                    mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
-                }
-            });
+            if(isNetworkAvailable()) {
+                FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                    @Override
+                    public void done(ArrayList<Movie> movies) {
+                        dbHelper.bulkInsert(movies);
+                        mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
+                    }
+                });
 
-            String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+                String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
 
-            task.execute(sortBy);
+                task.execute(sortBy);
+            }
         } else {
             listOfMovies = savedInstanceState.getParcelableArrayList(MOVIE_KEY);
         }
@@ -104,17 +109,19 @@ public class MainActivityFragment extends Fragment {
             if(key.equals(getString(R.string.pref_key_sort_by))) {
                 final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
 
-                FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
-                    @Override
-                    public void done(ArrayList<Movie> movies) {
-                        dbHelper.bulkInsert(movies);
-                        mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
-                    }
-                });
+                if(isNetworkAvailable()) {
+                    FetchPopularMoviesTask task = new FetchPopularMoviesTask(new GetMoviesCallback() {
+                        @Override
+                        public void done(ArrayList<Movie> movies) {
+                            dbHelper.bulkInsert(movies);
+                            mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
+                        }
+                    });
 
-                String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
+                    String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
 
-                task.execute(sortBy);
+                    task.execute(sortBy);
+                }
             }
         }
     };
@@ -144,6 +151,13 @@ public class MainActivityFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putParcelableArrayList(MOVIE_KEY, listOfMovies);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
