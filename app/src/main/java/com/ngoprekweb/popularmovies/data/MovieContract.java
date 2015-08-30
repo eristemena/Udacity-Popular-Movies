@@ -1,4 +1,4 @@
-package com.ngoprekweb.popularmovies.model;
+package com.ngoprekweb.popularmovies.data;
 
 import android.provider.BaseColumns;
 

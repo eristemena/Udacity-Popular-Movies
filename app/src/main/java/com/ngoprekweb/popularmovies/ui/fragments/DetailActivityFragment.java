@@ -1,4 +1,4 @@
-package com.ngoprekweb.popularmovies;
+package com.ngoprekweb.popularmovies.ui.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,8 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.ngoprekweb.popularmovies.model.Movie;
-import com.ngoprekweb.popularmovies.model.MovieDbHelper;
+import com.ngoprekweb.popularmovies.R;
+import com.ngoprekweb.popularmovies.data.Movie;
+import com.ngoprekweb.popularmovies.data.MovieDbHelper;
+import com.ngoprekweb.popularmovies.ui.activities.MainActivity;
 import com.squareup.picasso.Picasso;
 
 /**

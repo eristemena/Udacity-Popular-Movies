@@ -1,6 +1,6 @@
 package com.ngoprekweb.popularmovies;
 
-import com.ngoprekweb.popularmovies.model.Movie;
+import com.ngoprekweb.popularmovies.data.Movie;
 
 import java.util.ArrayList;
 
