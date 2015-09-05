@@ -21,10 +21,9 @@ import android.widget.GridView;
 
 import com.ngoprekweb.popularmovies.MovieAdapter;
 import com.ngoprekweb.popularmovies.R;
-import com.ngoprekweb.popularmovies.data.FetchPopularMoviesTask;
 import com.ngoprekweb.popularmovies.data.Movie;
 import com.ngoprekweb.popularmovies.data.MovieContract;
-import com.ngoprekweb.popularmovies.data.Utility;
+import com.ngoprekweb.popularmovies.sync.PopularMovieSyncAdapter;
 
 import java.util.ArrayList;
 
@@ -100,10 +99,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     private void updateWeather() {
-        FetchPopularMoviesTask weatherTask = new FetchPopularMoviesTask(getActivity());
-        String sortedBy = Utility.getPreferredSortedBy(getActivity());
-        Log.v(LOG_TAG,"Sorted by === "+sortedBy);
-        weatherTask.execute(sortedBy);
+        Log.v(LOG_TAG, "update movie");
+        PopularMovieSyncAdapter.syncImmediately(getActivity());
     }
 
     @Override

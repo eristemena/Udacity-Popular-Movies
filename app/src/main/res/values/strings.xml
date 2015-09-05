@@ -20,4 +20,6 @@
         <item>vote_count.desc</item>
     </string-array>
     <string name="title_activity_detail">DetailActivity</string>
+    <string name="sync_account_type">popularmovies.ngoprekweb.com</string>
+    <string name="content_authority">com.ngoprekweb.popularmovies</string>
 </resources>
