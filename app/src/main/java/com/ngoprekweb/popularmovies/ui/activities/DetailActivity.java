@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.ngoprekweb.popularmovies.R;
+import com.ngoprekweb.popularmovies.ui.fragments.DetailActivityFragment;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -14,6 +15,18 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+
+        if (savedInstanceState == null) {
+            Bundle arguments = new Bundle();
+            arguments.putParcelable(DetailActivityFragment.DETAIL_URI, getIntent().getData());
+
+            DetailActivityFragment detailFragment=new DetailActivityFragment();
+            detailFragment.setArguments(arguments);
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.weather_detail_container, detailFragment)
+                    .commit();
+        }
     }
 
 

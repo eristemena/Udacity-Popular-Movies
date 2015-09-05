@@ -1,5 +1,6 @@
 package com.ngoprekweb.popularmovies.data;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -40,6 +41,19 @@ public class Movie implements Parcelable {
     public Movie setId(String id) {
         mId = id;
         return this;
+    }
+
+    public ContentValues getContentValues(){
+        ContentValues values = new ContentValues();
+
+        values.put(MovieContract.MovieEntry.COLUMN_ID, this.getId());
+        values.put(MovieContract.MovieEntry.COLUMN_TITLE, this.getTitle());
+        values.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, this.getOverview());
+        values.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, this.getReleaseDate());
+        values.put(MovieContract.MovieEntry.COLUMN_RATING, this.getRating());
+        values.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL, this.getThumbnail());
+
+        return values;
     }
 
     public String getTitle() {

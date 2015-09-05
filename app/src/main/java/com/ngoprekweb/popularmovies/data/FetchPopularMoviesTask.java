@@ -1,11 +1,11 @@
 package com.ngoprekweb.popularmovies.data;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.ngoprekweb.popularmovies.GetMoviesCallback;
 import com.ngoprekweb.popularmovies.R;
 
 import org.json.JSONArray;
@@ -19,19 +19,18 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Vector;
 
-public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
+public class FetchPopularMoviesTask extends AsyncTask<String, Void, Void> {
     private final String LOG_TAG = FetchPopularMoviesTask.class.getSimpleName();
-    private GetMoviesCallback mCallback;
     private Context mContext;
 
-    public FetchPopularMoviesTask(Context context, GetMoviesCallback callback) {
-        mCallback = callback;
+    public FetchPopularMoviesTask(Context context) {
         mContext = context;
     }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected Void doInBackground(String... params) {
         // If there's no zip code, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
             return null;
@@ -93,12 +92,15 @@ public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
 
             Log.v(LOG_TAG, "Forecast string: " + forecastJsonStr);
 
-            return forecastJsonStr;
+            parseJSON(forecastJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
             return null;
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -111,17 +113,8 @@ public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
                 }
             }
         }
-    }
 
-    @Override
-    protected void onPostExecute(String forecastJsonStr) {
-        if(forecastJsonStr!=null) {
-            try {
-                mCallback.done(parseJSON(forecastJsonStr));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+        return null;
     }
 
     private ArrayList<Movie> parseJSON(String jsonString) throws JSONException {
@@ -137,6 +130,9 @@ public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
         JSONArray jMovies = jobj.getJSONArray("results");
 
         ArrayList<Movie> movies = new ArrayList<Movie>();
+        // Insert the new weather information into the database
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(jMovies.length());
+
         for (int i = 0; i < jMovies.length(); i++) {
             Movie movie = new Movie();
             JSONObject jMovie = jMovies.getJSONObject(i);
@@ -150,8 +146,24 @@ public class FetchPopularMoviesTask extends AsyncTask<String, Void, String> {
             String thumbUrl = "http://image.tmdb.org/t/p/w185" + jMovie.getString(TMDB_POSTER_PATH);
             movie.setThumbnail(thumbUrl);
 
-            movies.add(movie);
+            cVVector.add(movie.getContentValues());
         }
+
+        int inserted = 0;
+
+        // add to database
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+
+            // delete first
+            mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+
+            // bulk insert
+            inserted = mContext.getContentResolver().bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
+        }
+
+        Log.d(LOG_TAG, "FetchPopularMoviesTask Complete. " + inserted + " Inserted");
 
         return movies;
 

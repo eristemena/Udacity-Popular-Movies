@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class MovieDbHelper extends SQLiteOpenHelper {
     private static MovieDbHelper sMovieDbHelper;
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     static final String DATABASE_NAME = "movie.db";
 

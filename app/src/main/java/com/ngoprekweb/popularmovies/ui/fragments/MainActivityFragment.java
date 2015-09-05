@@ -1,42 +1,65 @@
 package com.ngoprekweb.popularmovies.ui.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.ngoprekweb.popularmovies.GetMoviesCallback;
-import com.ngoprekweb.popularmovies.ImageAdapter;
+import com.ngoprekweb.popularmovies.MovieAdapter;
 import com.ngoprekweb.popularmovies.R;
 import com.ngoprekweb.popularmovies.data.FetchPopularMoviesTask;
 import com.ngoprekweb.popularmovies.data.Movie;
-import com.ngoprekweb.popularmovies.data.MovieDbHelper;
-import com.ngoprekweb.popularmovies.ui.activities.DetailActivity;
-import com.ngoprekweb.popularmovies.ui.activities.MainActivity;
+import com.ngoprekweb.popularmovies.data.MovieContract;
+import com.ngoprekweb.popularmovies.data.Utility;
 
 import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private final String MOVIE_KEY = "movie_key";
     private GridView mGridView;
     private ArrayList<Movie> listOfMovies;
     SharedPreferences pref;
-    FetchPopularMoviesTask mTask;
+    MovieAdapter mMovieAdapter;
+
+    private static final int MOVIE_LOADER = 0;
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * callback for when an item has been selected.
+         */
+        public void onItemSelected(Uri contentUri);
+    }
 
     public MainActivityFragment() {
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(MOVIE_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -49,102 +72,38 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        mMovieAdapter = new MovieAdapter(getActivity(), null, 0);
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         mGridView = (GridView) rootView.findViewById(R.id.gridview);
-
-        if (savedInstanceState == null || !savedInstanceState.containsKey(MOVIE_KEY)) {
-            // no saved instance found
-
-            final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
-            listOfMovies = dbHelper.getAllMovies();
-
-            if(isNetworkAvailable()) {
-                mTask = new FetchPopularMoviesTask(getActivity(), new GetMoviesCallback() {
-                    @Override
-                    public void done(ArrayList<Movie> movies) {
-                        dbHelper.bulkInsert(movies);
-                        mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
-                    }
-                });
-
-                String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
-
-                mTask.execute(sortBy);
-            }
-        } else {
-            listOfMovies = savedInstanceState.getParcelableArrayList(MOVIE_KEY);
-        }
-
-        mGridView.setAdapter(new ImageAdapter(getActivity(), listOfMovies));
+        mGridView.setAdapter(mMovieAdapter);
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                Movie movie = (Movie) parent.getItemAtPosition(position);
-                intent.putExtra(MainActivity.EXTRA_MOVIE_ID, movie.getId());
-                startActivity(intent);
+                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                if (cursor != null) {
+                    String movieId = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_ID));
+
+                    ((Callback) getActivity()).onItemSelected(MovieContract.MovieEntry.buildMovieDetail(movieId));
+                }
             }
         });
 
         return rootView;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-
+    public void onLocationChanged( ) {
+        updateWeather();
+        getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        mTask.cancel(true);
-    }
-
-    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if(key.equals(getString(R.string.pref_key_sort_by))) {
-                final MovieDbHelper dbHelper = MovieDbHelper.get(getActivity());
-
-                if(isNetworkAvailable()) {
-                    mTask = new FetchPopularMoviesTask(getActivity(), new GetMoviesCallback() {
-                        @Override
-                        public void done(ArrayList<Movie> movies) {
-                            dbHelper.bulkInsert(movies);
-                            mGridView.setAdapter(new ImageAdapter(getActivity(), movies));
-                        }
-                    });
-
-                    String sortBy = pref.getString(getString(R.string.pref_key_sort_by), getString(R.string.pref_default_sort_by));
-
-                    mTask.execute(sortBy);
-                }
-            }
-        }
-    };
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        pref.registerOnSharedPreferenceChangeListener(sharedPreferenceListener);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        pref.unregisterOnSharedPreferenceChangeListener(sharedPreferenceListener);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-
+    private void updateWeather() {
+        FetchPopularMoviesTask weatherTask = new FetchPopularMoviesTask(getActivity());
+        String sortedBy = Utility.getPreferredSortedBy(getActivity());
+        Log.v(LOG_TAG,"Sorted by === "+sortedBy);
+        weatherTask.execute(sortedBy);
     }
 
     @Override
@@ -161,5 +120,24 @@ public class MainActivityFragment extends Fragment {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = MovieContract.MovieEntry.CONTENT_URI;
+        return new CursorLoader(getActivity(),
+                uri,
+                null,
+                null,
+                null,
+                null);
+    }
 
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mMovieAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMovieAdapter.swapCursor(data);
+    }
 }
