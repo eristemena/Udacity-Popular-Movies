@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     private boolean mTwoPane;
     private String mSortedBy;
+    private String[] mFavorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,17 +97,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     protected void onResume() {
         super.onResume();
         String sortedBy = Utility.getPreferredSortedBy(this);
-        // update the location in our second pane using the fragment manager
-        if (sortedBy!= null && !sortedBy.equals(mSortedBy)) {
-            MainActivityFragment ff = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.fragment);
-            if ( null != ff ) {
-                ff.onLocationChanged();
-            }
+        String favorites = TextUtils.join(",", Utility.getFavorites(this));
 
-//            DetailActivityFragment df = (DetailActivityFragment)getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
-//            if ( null != df ) {
-//                df.onLocationChanged(location);
-//            }
+        if ((sortedBy != null && !sortedBy.equals(mSortedBy)) || (favorites != null && !favorites.equals(mFavorites))) {
+            MainActivityFragment ff = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+            if (null != ff) {
+                ff.onSortedByChanged();
+            }
 
             mSortedBy = sortedBy;
         }

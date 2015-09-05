@@ -7,10 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.ngoprekweb.popularmovies.data.Movie;
 import com.ngoprekweb.popularmovies.data.MovieContract;
+import com.ngoprekweb.popularmovies.data.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -47,11 +46,8 @@ public class MovieAdapter extends CursorAdapter {
         String poster = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_THUMBNAIL));
         Picasso.with(context).load(poster).into(viewHolder.posterView);
 
-        String title = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE));
-        viewHolder.titleView.setText(title);
-
-
-
+//        String title = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE));
+//        viewHolder.titleView.setText(title);
     }
 
 //    @Override
@@ -86,11 +82,11 @@ public class MovieAdapter extends CursorAdapter {
      */
     public static class ViewHolder {
         public final ImageView posterView;
-        public final TextView titleView;
+//        public final TextView titleView;
 
         public ViewHolder(View view) {
             posterView = (ImageView) view.findViewById(R.id.list_item_movie_imageview);
-            titleView = (TextView) view.findViewById(R.id.list_item_title_textview);
+//            titleView = (TextView) view.findViewById(R.id.list_item_title_textview);
         }
     }
 }

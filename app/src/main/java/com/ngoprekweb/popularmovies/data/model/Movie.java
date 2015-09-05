@@ -1,25 +1,31 @@
-package com.ngoprekweb.popularmovies.data;
+package com.ngoprekweb.popularmovies.data.model;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.ngoprekweb.popularmovies.data.MovieContract;
+
 public class Movie implements Parcelable {
     private String mId;
     private String mTitle;
     private String mOverview;
     private String mReleaseDate;
-    private String mRating;
+    private double mVoteAverage;
+    private long mVoteCount;
     private String mThumbnail;
+    private boolean mIsFavored;
 
     public Movie(Cursor cursor) {
         setId(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_ID)));
         setTitle(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE)));
         setOverview(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW)));
         setReleaseDate(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE)));
-        setRating(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING)));
+        setVoteAverage(cursor.getDouble(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE)));
+        setVoteCount(cursor.getLong(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_COUNT)));
         setThumbnail(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_THUMBNAIL)));
+        setAsFavored(cursor.getInt(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_FAVORED)) != 0);
     }
 
     public String getId() {
@@ -34,8 +40,9 @@ public class Movie implements Parcelable {
         this.mTitle = in.readString();
         this.mOverview = in.readString();
         this.mReleaseDate = in.readString();
-        this.mRating = in.readString();
+        this.mVoteAverage = in.readDouble();
         this.mThumbnail = in.readString();
+        this.mIsFavored = in.readByte() != 0;
     }
 
     public Movie setId(String id) {
@@ -43,15 +50,17 @@ public class Movie implements Parcelable {
         return this;
     }
 
-    public ContentValues getContentValues(){
+    public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
 
         values.put(MovieContract.MovieEntry.COLUMN_ID, this.getId());
         values.put(MovieContract.MovieEntry.COLUMN_TITLE, this.getTitle());
         values.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, this.getOverview());
         values.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, this.getReleaseDate());
-        values.put(MovieContract.MovieEntry.COLUMN_RATING, this.getRating());
+        values.put(MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE, this.getVoteAverage());
+        values.put(MovieContract.MovieEntry.COLUMN_VOTE_COUNT, this.getVoteCount());
         values.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL, this.getThumbnail());
+        values.put(MovieContract.MovieEntry.COLUMN_FAVORED, this.isFavored() ? 1 : 0);
 
         return values;
     }
@@ -83,12 +92,21 @@ public class Movie implements Parcelable {
         return this;
     }
 
-    public String getRating() {
-        return mRating;
+    public Double getVoteAverage() {
+        return mVoteAverage;
     }
 
-    public Movie setRating(String rating) {
-        mRating = rating;
+    public Movie setVoteAverage(Double voteAverage) {
+        mVoteAverage = voteAverage;
+        return this;
+    }
+
+    public long getVoteCount() {
+        return mVoteCount;
+    }
+
+    public Movie setVoteCount(long voteCount) {
+        mVoteCount = voteCount;
         return this;
     }
 
@@ -98,6 +116,15 @@ public class Movie implements Parcelable {
 
     public Movie setThumbnail(String thumbnail) {
         mThumbnail = thumbnail;
+        return this;
+    }
+
+    public boolean isFavored() {
+        return mIsFavored;
+    }
+
+    public Movie setAsFavored(boolean isFavored) {
+        mIsFavored = isFavored;
         return this;
     }
 
@@ -112,8 +139,10 @@ public class Movie implements Parcelable {
         dest.writeString(this.mTitle);
         dest.writeString(this.mOverview);
         dest.writeString(this.mReleaseDate);
-        dest.writeString(this.mRating);
+        dest.writeDouble(this.mVoteAverage);
+        dest.writeLong(this.mVoteCount);
         dest.writeString(this.mThumbnail);
+        dest.writeByte(this.mIsFavored ? (byte) 1 : (byte) 0);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

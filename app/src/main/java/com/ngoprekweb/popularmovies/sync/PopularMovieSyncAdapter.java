@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.ngoprekweb.popularmovies.R;
-import com.ngoprekweb.popularmovies.data.Movie;
 import com.ngoprekweb.popularmovies.data.MovieContract;
 import com.ngoprekweb.popularmovies.data.Utility;
 
@@ -47,7 +46,13 @@ public class PopularMovieSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        String sortedBy = Utility.getPreferredSortedBy(getContext());
+        String utilSortedBy = Utility.getPreferredSortedBy(getContext());
+        String sortedBy;
+        if(utilSortedBy.equals(Utility.SORTED_BY_POPULARITY)){
+            sortedBy="popularity.desc";
+        }else{
+            sortedBy="vote_count.desc";
+        }
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
@@ -136,7 +141,9 @@ public class PopularMovieSyncAdapter extends AbstractThreadedSyncAdapter {
         final String TMDB_TITLE = "title";
         final String TMDB_OVERVIEW = "overview";
         final String TMDB_RELEASE_DATE = "release_date";
-        final String TMDB_RATING = "vote_average";
+        final String TMDB_VOTE_AVERAGE = "vote_average";
+        final String TMDB_VOTE_COUNT = "vote_count";
+        final String TMDB_POPULARITY = "popularity";
         final String TMDB_POSTER_PATH = "poster_path";
 
         JSONObject jobj = new JSONObject(jsonString);
@@ -146,19 +153,23 @@ public class PopularMovieSyncAdapter extends AbstractThreadedSyncAdapter {
         Vector<ContentValues> cVVector = new Vector<ContentValues>(jMovies.length());
 
         for (int i = 0; i < jMovies.length(); i++) {
-            Movie movie = new Movie();
             JSONObject jMovie = jMovies.getJSONObject(i);
 
-            movie.setId(jMovie.getString(TMDB_ID));
-            movie.setTitle(jMovie.getString(TMDB_TITLE));
-            movie.setOverview(jMovie.getString(TMDB_OVERVIEW));
-            movie.setReleaseDate(jMovie.getString(TMDB_RELEASE_DATE));
-            movie.setRating(jMovie.getString(TMDB_RATING));
+            String movieId = jMovie.getString(TMDB_ID);
 
+            ContentValues values = new ContentValues();
             String thumbUrl = "http://image.tmdb.org/t/p/w185" + jMovie.getString(TMDB_POSTER_PATH);
-            movie.setThumbnail(thumbUrl);
 
-            cVVector.add(movie.getContentValues());
+            values.put(MovieContract.MovieEntry.COLUMN_ID, movieId);
+            values.put(MovieContract.MovieEntry.COLUMN_TITLE, jMovie.getString(TMDB_TITLE));
+            values.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, jMovie.getString(TMDB_OVERVIEW));
+            values.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, jMovie.getString(TMDB_RELEASE_DATE));
+            values.put(MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE, jMovie.getString(TMDB_VOTE_AVERAGE));
+            values.put(MovieContract.MovieEntry.COLUMN_POPULARITY, jMovie.getString(TMDB_POPULARITY));
+            values.put(MovieContract.MovieEntry.COLUMN_VOTE_COUNT, jMovie.getString(TMDB_VOTE_COUNT));
+            values.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL, thumbUrl);
+
+            cVVector.add(values);
         }
 
         int inserted = 0;
@@ -167,9 +178,6 @@ public class PopularMovieSyncAdapter extends AbstractThreadedSyncAdapter {
         if (cVVector.size() > 0) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
-
-            // delete first
-            getContext().getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
 
             // bulk insert
             inserted = getContext().getContentResolver().bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);

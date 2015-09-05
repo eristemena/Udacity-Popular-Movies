@@ -83,7 +83,21 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        int rowsUpdated = 0;
+
+        switch (match) {
+            case MOVIE: {
+                rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
+        }
+        Log.v(LOG_TAG, "rows updated = " + rowsUpdated);
+        if (rowsUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsUpdated;
     }
 
     @Override
@@ -125,9 +139,24 @@ public class MovieProvider extends ContentProvider {
                 int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
-                        if (_id != -1) {
+                        String movieId = value.getAsString(MovieContract.MovieEntry.COLUMN_ID);
+                        Cursor cursor = db.query(MovieContract.MovieEntry.TABLE_NAME,
+                                new String[]{MovieContract.MovieEntry.COLUMN_ID},
+                                MovieContract.MovieEntry.COLUMN_ID + "=?",
+                                new String[]{movieId},
+                                null,
+                                null,
+                                null
+                        );
+                        if (cursor.moveToFirst()) {
+                            db.update(MovieContract.MovieEntry.TABLE_NAME, value, MovieContract.MovieEntry.COLUMN_ID + "=?",
+                                    new String[]{movieId});
                             returnCount++;
+                        } else {
+                            long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                            if (_id != -1) {
+                                returnCount++;
+                            }
                         }
                     }
                     db.setTransactionSuccessful();

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="detail_movie_title">#64B5F6</color>
+
+    <color name="list_divider_color">#92a3a3a3</color>
 </resources>

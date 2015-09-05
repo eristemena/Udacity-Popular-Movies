@@ -21,7 +21,8 @@ import android.widget.GridView;
 
 import com.ngoprekweb.popularmovies.MovieAdapter;
 import com.ngoprekweb.popularmovies.R;
-import com.ngoprekweb.popularmovies.data.Movie;
+import com.ngoprekweb.popularmovies.data.Utility;
+import com.ngoprekweb.popularmovies.data.model.Movie;
 import com.ngoprekweb.popularmovies.data.MovieContract;
 import com.ngoprekweb.popularmovies.sync.PopularMovieSyncAdapter;
 
@@ -93,12 +94,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         return rootView;
     }
 
-    public void onLocationChanged( ) {
-        updateWeather();
+    public void onSortedByChanged() {
+        String sortedBy = Utility.getPreferredSortedBy(getActivity());
+        if (!sortedBy.equals(Utility.SORTED_BY_FAVORITE))
+            updateMovies();
+
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
     }
 
-    private void updateWeather() {
+    private void updateMovies() {
         Log.v(LOG_TAG, "update movie");
         PopularMovieSyncAdapter.syncImmediately(getActivity());
     }
@@ -120,12 +124,30 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri uri = MovieContract.MovieEntry.CONTENT_URI;
+
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+
+        if(Utility.getPreferredSortedBy(getActivity()).equals(Utility.SORTED_BY_FAVORITE)) {
+            selectionArgs = Utility.getFavorites(getActivity());
+            selection = MovieContract.MovieEntry.COLUMN_ID+" in (";
+            for(int i=0;i<selectionArgs.length;i++){
+                selection+="?, ";
+            }
+            selection = selection.substring(0, selection.length() - 2) + ")";
+        }else if(Utility.getPreferredSortedBy(getActivity()).equals(Utility.SORTED_BY_HIGHEST_RATED)) {
+            sortOrder = MovieContract.MovieEntry.COLUMN_VOTE_COUNT+" desc";
+        }else if(Utility.getPreferredSortedBy(getActivity()).equals(Utility.SORTED_BY_POPULARITY)) {
+            sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY+" desc";
+        }
+
         return new CursorLoader(getActivity(),
                 uri,
                 null,
-                null,
-                null,
-                null);
+                selection,
+                selectionArgs,
+                sortOrder);
     }
 
     @Override

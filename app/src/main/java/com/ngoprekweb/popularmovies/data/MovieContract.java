@@ -27,9 +27,12 @@ public class MovieContract {
         public static final String COLUMN_ID = "id";
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_OVERVIEW = "overview";
-        public static final String COLUMN_RATING = "rating";
+        public static final String COLUMN_VOTE_AVERAGE = "voteAverage";
+        public static final String COLUMN_VOTE_COUNT = "voteCount";
+        public static final String COLUMN_POPULARITY = "popularity";
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_THUMBNAIL = "thumbnail";
+        public static final String COLUMN_FAVORED = "favored";
 
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

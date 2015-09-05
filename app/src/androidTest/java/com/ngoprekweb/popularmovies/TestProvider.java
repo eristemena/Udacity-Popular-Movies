@@ -93,7 +93,7 @@ public class TestProvider extends AndroidTestCase {
         values.put(MovieContract.MovieEntry.COLUMN_ID, "123");
         values.put(MovieContract.MovieEntry.COLUMN_TITLE, "TITLE");
         values.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, "OVERVIEW");
-        values.put(MovieContract.MovieEntry.COLUMN_RATING, "RATING");
+        values.put(MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE, "RATING");
         values.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, "2015-05-01");
         values.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL, "http://image.com/image");
 

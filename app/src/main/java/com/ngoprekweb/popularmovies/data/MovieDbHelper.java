@@ -1,17 +1,18 @@
 package com.ngoprekweb.popularmovies.data;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.ngoprekweb.popularmovies.data.model.Movie;
 
 import java.util.ArrayList;
 
 public class MovieDbHelper extends SQLiteOpenHelper {
     private static MovieDbHelper sMovieDbHelper;
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 7;
 
     static final String DATABASE_NAME = "movie.db";
 
@@ -25,36 +26,6 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
     public MovieDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-    }
-
-    /**
-     * Bulk insert (i just need to cache)
-     *
-     * @param movies array of movies
-     */
-    public void bulkInsert(ArrayList<Movie> movies) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.delete(MovieContract.MovieEntry.TABLE_NAME, null, null);
-
-        try {
-            db.beginTransaction();
-            for (int i = 0; i < movies.size(); i++) {
-                Movie movie = movies.get(i);
-
-                ContentValues values = new ContentValues();
-                values.put(MovieContract.MovieEntry.COLUMN_ID, movie.getId());
-                values.put(MovieContract.MovieEntry.COLUMN_TITLE, movie.getTitle());
-                values.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, movie.getOverview());
-                values.put(MovieContract.MovieEntry.COLUMN_RATING, movie.getRating());
-                values.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
-                values.put(MovieContract.MovieEntry.COLUMN_THUMBNAIL, movie.getThumbnail());
-
-                db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
     }
 
     public Movie getMovie(String id) {
@@ -114,8 +85,12 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
-                MovieContract.MovieEntry.COLUMN_RATING + " TEXT NOT NULL, " +
-                MovieContract.MovieEntry.COLUMN_THUMBNAIL + " TEXT NOT NULL " +
+                MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE + " REAL, " +
+                MovieContract.MovieEntry.COLUMN_POPULARITY + " REAL, " +
+                MovieContract.MovieEntry.COLUMN_VOTE_COUNT + " INTEGER, " +
+                MovieContract.MovieEntry.COLUMN_THUMBNAIL + " TEXT NOT NULL, " +
+                MovieContract.MovieEntry.COLUMN_FAVORED + " INTEGER NOT NULL DEFAULT 0, " +
+                "UNIQUE (" + MovieContract.MovieEntry.COLUMN_ID+ ") ON CONFLICT REPLACE" +
                 ");";
 
         db.execSQL(SQL_CREATE_MOVIE_TABLE);
