@@ -9,6 +9,7 @@ import android.view.MenuItem;
 
 import com.ngoprekweb.popularmovies.R;
 import com.ngoprekweb.popularmovies.data.Utility;
+import com.ngoprekweb.popularmovies.sync.PopularMovieSyncAdapter;
 import com.ngoprekweb.popularmovies.ui.fragments.DetailActivityFragment;
 import com.ngoprekweb.popularmovies.ui.fragments.MainActivityFragment;
 
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         } else {
             mTwoPane = false;
         }
+
+        PopularMovieSyncAdapter.initializeSyncAdapter(this);
     }
 
 
