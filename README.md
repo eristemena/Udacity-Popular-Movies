@@ -11,6 +11,7 @@ Movie informations are retrieved from TheMovieDb.org API.
 * Android SDK v23
 * Android Build Tools v23.0.1
 * Android Support Repository
+* API Key from [themoviedb.org](http://themoviedb.org)
 
 ## Libraries
 
@@ -20,3 +21,5 @@ Movie informations are retrieved from TheMovieDb.org API.
 ## How To Install
 
 This project uses the Gradle build system. To build this project, use the "gradlew build" command or use "Import Project" in Android Studio.
+
+This app uses [The Movie Database API](https://www.themoviedb.org/documentation/api) to retrieve movies. You must register and get your own API key and paste it to YOUR_API_KEY_HERE in res/value/strings.xml.
