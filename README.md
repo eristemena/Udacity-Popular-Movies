@@ -22,4 +22,4 @@ Movie informations are retrieved from TheMovieDb.org API.
 
 This project uses the Gradle build system. To build this project, use the "gradlew build" command or use "Import Project" in Android Studio.
 
-This app uses [The Movie Database API](https://www.themoviedb.org/documentation/api) to retrieve movies. You must register and get your own API key and paste it to YOUR_API_KEY_HERE in res/value/strings.xml.
+This app uses [The Movie Database API](https://www.themoviedb.org/documentation/api) to retrieve movies. You must register and get your own API key and paste it to YOUR_API_KEY_HERE in `res/values/strings.xml`.
